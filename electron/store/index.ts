@@ -19,4 +19,9 @@ ipcMain.handle("get-store-data", (event: any, key: string) => {
   return value;
 });
 
+// 删除数据
+ipcMain.handle("delete-key-data", (event: any, key: string) => {
+  store.delete(key);
+});
+
 export default store;

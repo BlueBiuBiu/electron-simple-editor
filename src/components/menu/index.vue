@@ -162,8 +162,15 @@ const nodeContextmenu = (event: any, data: any, node: any) => {
     currentNodeData.value = node;
   });
 
+  // 剪切文件/文件夹
+  window.ipcRenderer.once("cutFileOrDir", () => {
+    window.app.deleteKeyData("copy-path");
+    window.app.setStoreData("cut-path", JSON.stringify(data.path));
+  });
+
   // 复制文件/文件夹
   window.ipcRenderer.once("copyFileOrDir", () => {
+    window.app.deleteKeyData("cut-path");
     window.app.setStoreData("copy-path", JSON.stringify(data.path));
   });
 

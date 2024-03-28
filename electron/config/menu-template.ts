@@ -199,7 +199,13 @@ export const dirContextMenuTemplate: MenuItemConstructorOptions[] = [
     },
   },
   { type: "separator" },
-  { label: "剪切", role: "cut", accelerator: "CmdOrCtrl+X", click: () => {} },
+  {
+    label: "剪切",
+    accelerator: "CmdOrCtrl+X",
+    click: () => {
+      BrowserWindow.getFocusedWindow()!.webContents.send("cutFileOrDir");
+    },
+  },
   {
     label: "复制",
     accelerator: "CmdOrCtrl+C",
@@ -240,7 +246,13 @@ export const fileContextMenuTemplate: MenuItemConstructorOptions[] = [
     },
   },
   { type: "separator" },
-  { label: "剪切", role: "cut", accelerator: "CmdOrCtrl+X", click: () => {} },
+  {
+    label: "剪切",
+    accelerator: "CmdOrCtrl+X",
+    click: () => {
+      BrowserWindow.getFocusedWindow()!.webContents.send("cutFileOrDir");
+    },
+  },
   {
     label: "复制",
     accelerator: "CmdOrCtrl+C",

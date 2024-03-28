@@ -215,24 +215,37 @@ export function pasteFileOrDirectory(data: { pastePath: string }) {
   const copyPath = store.get("copy-path")
     ? JSON.parse(store.get("copy-path") as string)
     : "";
-  if (!copyPath) return;
+  const cutPath = store.get("cut-path")
+    ? JSON.parse(store.get("cut-path") as string)
+    : "";
+  if (!copyPath && !cutPath) return;
+
   const pastePath = data.pastePath;
   console.log("copyPath", copyPath, pastePath);
+  console.log("cutPath", cutPath, pastePath);
 
-  const tempArr = copyPath.split("\\");
+  const pathValue = copyPath ? copyPath : cutPath;
+
+  const tempArr = pathValue.split("\\");
   const dirname = tempArr[tempArr.length - 1];
   const newFullPath = `${pastePath}\\${dirname}`;
-  console.log("newFullPath", newFullPath);
+  console.log("newFullPath", dirname, newFullPath);
 
-  const stats = fs.statSync(copyPath);
+  const stats = fs.statSync(pathValue);
   if (!stats.isFile()) {
     if (!fs.existsSync(newFullPath)) {
       fs.mkdirSync(newFullPath);
     }
-    copyFolderRecursiveSync(copyPath, newFullPath);
+    copyFolderRecursiveSync(pathValue, newFullPath);
   } else {
-    fs.copyFileSync(copyPath, newFullPath);
+    fs.copyFileSync(pathValue, newFullPath);
   }
+
+  if (cutPath) {
+    // 剪切模式, 删掉原文件
+    rimrafSync(pathValue);
+  }
+
   const menu = JSON.parse(store.get("menu") as string);
   reOpenDir(menu[0].path);
   store.delete("copy-path");

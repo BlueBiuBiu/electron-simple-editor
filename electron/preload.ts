@@ -42,6 +42,7 @@ contextBridge.exposeInMainWorld("app", {
   setStoreData: (key: string, value: any) =>
     ipcRenderer.invoke("set-store-data", key, value),
   getStoreData: (key: string) => ipcRenderer.invoke("get-store-data", key),
+  deleteKeyData: (key: string) => ipcRenderer.invoke("delete-key-data", key),
 });
 
 contextBridge.exposeInMainWorld("clipboard", {
