@@ -10,17 +10,19 @@
       </el-button>
       <Menu v-else :data="menu" />
     </el-aside>
-    <el-container>
-      <el-header>Header</el-header>
-      <el-main>Main</el-main>
-      <el-footer>Footer</el-footer>
-    </el-container>
+    <div class="content">
+      <tabNav />
+      <el-main>
+        <div id="container"></div>
+      </el-main>
+    </div>
   </el-container>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import Menu from "./components/menu/index.vue";
+import TabNav from "./components/tab-nav-m/index.vue";
 
 export interface IMenu {
   path: string;
@@ -78,5 +80,20 @@ onMounted(async () => {
     width: 100%;
     margin: 15px 15px 0;
   }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  #container {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+:deep(.el-main) {
+  padding: 0;
 }
 </style>

@@ -7,6 +7,7 @@
       class="filter-tree"
       :data="currentData"
       :props="defaultProps"
+      @node-click="nodeClick"
       @node-collapse="nodeCollapse"
       @node-contextmenu="nodeContextmenu"
     >
@@ -68,6 +69,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
+import { useTabNavStore } from "../store/modules/tab-nav";
 
 const defaultProps = {
   children: "children",
@@ -75,6 +77,7 @@ const defaultProps = {
 };
 
 const props = defineProps<{ data: any }>();
+const tabNavStore = useTabNavStore();
 const currentData = ref();
 const editNode = ref(""); // 当前输入框的值
 const currentNodeData = ref(); // 当前操作的节点
@@ -90,6 +93,10 @@ const deletePath = ref(""); // 删除的路径
 //@ts-ignore
 const icons = window.FileIcons;
 // console.log(icons.getClassWithColor("README.md")); // 获取对应图标的class类名
+
+const nodeClick = (node: { name: string; path: string }) => {
+  tabNavStore.addNav(node);
+};
 
 const nodeCollapse = () => {
   if (currentNodeData.value && currentNodeData.value.children) {

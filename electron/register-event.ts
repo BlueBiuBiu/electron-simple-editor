@@ -77,3 +77,15 @@ ipcMain.handle("clipboard-write-text", (event: any, value: string) => {
 ipcMain.handle("clipboard-read-text", (event: any) => {
   clipboard.readText();
 });
+
+// 是否是文件
+ipcMain.handle("is-file", (event: any, path: string) => {
+  const stats = fs.statSync(path);
+  return stats.isFile();
+});
+
+// 读取文件内容
+ipcMain.handle("get-file-content", async (event: any, path: string) => {
+  const fileContent = await fs.readFileSync(path, "utf8");
+  return fileContent;
+});
