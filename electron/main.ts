@@ -46,13 +46,12 @@ function createWindow() {
   Menu.setApplicationMenu(menu);
 
   // 右键菜单
-  ipcMain.on("contextMenu", (event, item: string) => {
+  ipcMain.on("contextMenu", (event, item: { mode: "file" | "dir" }) => {
     console.log("item", item);
-    const data = JSON.parse(item) as { mode: "file" | "dir" };
     let contextMenu;
-    if (data.mode === "file") {
+    if (item.mode === "file") {
       contextMenu = Menu.buildFromTemplate(fileContextMenuTemplate);
-    } else if (data.mode === "dir") {
+    } else if (item.mode === "dir") {
       contextMenu = Menu.buildFromTemplate(dirContextMenuTemplate);
     }
 

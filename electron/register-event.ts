@@ -19,9 +19,8 @@ ipcMain.on("open-directory-dialog", async () => {
 ipcMain.on("confirm-create-file", (event: any, newData: any) => {
   console.log("confirm-create-file");
 
-  const data = JSON.parse(newData);
-  let filepath = data.parentPath;
-  const fileFullPath = `${filepath}\\${data.filename}`;
+  let filepath = newData.parentPath;
+  const fileFullPath = `${filepath}\\${newData.filename}`;
 
   createFileOrDirOnDir(filepath, fileFullPath, "file");
 });
@@ -30,9 +29,8 @@ ipcMain.on("confirm-create-file", (event: any, newData: any) => {
 ipcMain.on("confirm-create-dir", (event: any, newData: any) => {
   console.log("confirm-create-dir");
 
-  const data = JSON.parse(newData);
-  let filepath = data.parentPath;
-  const fileFullPath = `${filepath}\\${data.filename}`;
+  let filepath = newData.parentPath;
+  const fileFullPath = `${filepath}\\${newData.filename}`;
 
   createFileOrDirOnDir(filepath, fileFullPath, "dir");
 });
@@ -41,24 +39,19 @@ ipcMain.on("confirm-create-dir", (event: any, newData: any) => {
 ipcMain.on("confirm-rename", (event: any, newData: any) => {
   console.log("confirm-rename");
 
-  const data = JSON.parse(newData);
-  renameFileOrDirectory(data);
+  renameFileOrDirectory(newData);
 });
 
 // 删除点击确认或者Enter
 ipcMain.on("confirm-delete", (event: any, newData: any) => {
   console.log("confirm-delete");
 
-  const data = JSON.parse(newData);
-  deleteFileOrDirectory(data);
+  deleteFileOrDirectory(newData);
 });
 
 // 删除点击确认或者Enter
 ipcMain.on("confirm-paste", (event: any, newData: any) => {
-  console.log("confirm-paste");
-
-  const data = JSON.parse(newData);
-  pasteFileOrDirectory(data);
+  pasteFileOrDirectory(newData);
 });
 
 // 暗夜模式切换

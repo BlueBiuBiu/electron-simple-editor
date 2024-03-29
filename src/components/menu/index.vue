@@ -34,17 +34,11 @@
     width="350"
     top="25vh"
   >
-    <el-input size="small" v-model="renameValue" />
+    <el-input size="small" v-model="renameValue" @keyup.enter="confirmRename" />
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="renameDialogVisible = false">取消</el-button>
-        <el-button
-          type="primary"
-          @click="confirmRename"
-          @keyup.enter="confirmRename"
-        >
-          确定
-        </el-button>
+        <el-button type="primary" @click="confirmRename"> 确定 </el-button>
       </div>
     </template>
   </el-dialog>
@@ -62,8 +56,8 @@
         <el-button @click="deleteDialogVisible = false">取消</el-button>
         <el-button
           type="primary"
+          v-confirmKeyup="confirmDelete"
           @click="confirmDelete"
-          @keyup.enter="confirmDelete"
         >
           确定
         </el-button>
@@ -84,6 +78,7 @@ const props = defineProps<{ data: any }>();
 const currentData = ref();
 const editNode = ref(""); // 当前输入框的值
 const currentNodeData = ref(); // 当前操作的节点
+const cutOrCopyNodeData = ref(); // 当前剪切的节点
 const editMode = ref<"createFile" | "createDir">("createFile");
 const renameDialogVisible = ref(false);
 const renameValue = ref(""); // 重命名的值
@@ -128,14 +123,13 @@ const nodeContextmenu = (event: any, data: any, node: any) => {
 
   window.ipcRenderer.removeAllListeners("createFileOnDir");
   window.ipcRenderer.removeAllListeners("createDir");
+  window.ipcRenderer.removeAllListeners("cutFileOrDir");
+  window.ipcRenderer.removeAllListeners("copyFileOrDir");
   window.ipcRenderer.removeAllListeners("pasteFileOrDir");
 
-  window.ipcRenderer.send(
-    "contextMenu",
-    JSON.stringify({
-      mode: data?.children ? "dir" : "file",
-    })
-  );
+  window.ipcRenderer.send("contextMenu", {
+    mode: data?.children ? "dir" : "file",
+  });
   // 创建文件
   window.ipcRenderer.once("createFileOnDir", () =>
     createFileOrDir(data, node, "createFile")
@@ -164,24 +158,26 @@ const nodeContextmenu = (event: any, data: any, node: any) => {
 
   // 剪切文件/文件夹
   window.ipcRenderer.once("cutFileOrDir", () => {
+    console.log("data", data, node);
+
+    cutOrCopyNodeData.value = node;
     window.app.deleteKeyData("copy-path");
     window.app.setStoreData("cut-path", JSON.stringify(data.path));
   });
 
   // 复制文件/文件夹
   window.ipcRenderer.once("copyFileOrDir", () => {
+    cutOrCopyNodeData.value = node;
     window.app.deleteKeyData("cut-path");
     window.app.setStoreData("copy-path", JSON.stringify(data.path));
   });
 
   // 粘贴文件/文件夹
   window.ipcRenderer.once("pasteFileOrDir", () => {
-    window.ipcRenderer.send(
-      "confirm-paste",
-      JSON.stringify({
-        pastePath: data.path,
-      })
-    );
+    currentNodeData.value = node;
+    window.ipcRenderer.send("confirm-paste", {
+      pastePath: data.path,
+    });
   });
 
   // 路径存储到本地磁盘
@@ -200,43 +196,31 @@ const handleEnter = (node: any) => {
 
   console.log("node", node.parent.data);
   if (editMode.value === "createFile") {
-    window.ipcRenderer.send(
-      "confirm-create-file",
-      JSON.stringify({
-        parentPath: node.parent.data.path,
-        filename: node.data.name,
-      })
-    );
+    window.ipcRenderer.send("confirm-create-file", {
+      parentPath: node.parent.data.path,
+      filename: node.data.name,
+    });
   } else if (editMode.value === "createDir") {
-    window.ipcRenderer.send(
-      "confirm-create-dir",
-      JSON.stringify({
-        parentPath: node.parent.data.path,
-        filename: node.data.name,
-      })
-    );
+    window.ipcRenderer.send("confirm-create-dir", {
+      parentPath: node.parent.data.path,
+      filename: node.data.name,
+    });
   }
 };
 
 // 确定重命名
 const confirmRename = () => {
-  window.ipcRenderer.send(
-    "confirm-rename",
-    JSON.stringify({
-      newName: renameValue.value,
-      path: renamePath.value,
-    })
-  );
+  window.ipcRenderer.send("confirm-rename", {
+    newName: renameValue.value,
+    path: renamePath.value,
+  });
 };
 
 // 确定删除
 const confirmDelete = () => {
-  window.ipcRenderer.send(
-    "confirm-delete",
-    JSON.stringify({
-      path: deletePath.value,
-    })
-  );
+  window.ipcRenderer.send("confirm-delete", {
+    path: deletePath.value,
+  });
 };
 
 window.ipcRenderer.on("finishRename", () => {
@@ -252,6 +236,27 @@ window.ipcRenderer.on("finishDelete", () => {
   currentNodeData.value.parent.data.children.splice(deleteIndex, 1);
   deleteDialogVisible.value = false;
 });
+
+window.ipcRenderer.on(
+  "finishPaste",
+  (event: any, data: { isCopy: boolean }) => {
+    console.log("===>", event, data);
+    const isCopy = data.isCopy;
+
+    console.log("cutOrCopyNodeData", cutOrCopyNodeData.value);
+    console.log("currentNodeData", currentNodeData.value);
+    currentNodeData.value.data.children.push(cutOrCopyNodeData.value.data);
+    // 如果是粘贴则删除复制的节点
+    if (!isCopy) {
+      const deletePath = cutOrCopyNodeData.value.data.path;
+      const deleteIndex =
+        cutOrCopyNodeData.value.parent.data.children.findIndex(
+          (item: any) => item.path === deletePath
+        );
+      cutOrCopyNodeData.value.parent.data.children.splice(deleteIndex, 1);
+    }
+  }
+);
 
 watch(
   () => props.data,

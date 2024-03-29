@@ -219,12 +219,13 @@ export function pasteFileOrDirectory(data: { pastePath: string }) {
     ? JSON.parse(store.get("cut-path") as string)
     : "";
   if (!copyPath && !cutPath) return;
+  const isCopy = copyPath ? true : false; // 是否是复制
 
   const pastePath = data.pastePath;
   console.log("copyPath", copyPath, pastePath);
   console.log("cutPath", cutPath, pastePath);
 
-  const pathValue = copyPath ? copyPath : cutPath;
+  const pathValue = isCopy ? copyPath : cutPath;
 
   const tempArr = pathValue.split("\\");
   const dirname = tempArr[tempArr.length - 1];
@@ -241,14 +242,15 @@ export function pasteFileOrDirectory(data: { pastePath: string }) {
     fs.copyFileSync(pathValue, newFullPath);
   }
 
-  if (cutPath) {
+  if (!isCopy) {
     // 剪切模式, 删掉原文件
     rimrafSync(pathValue);
+    store.delete("cut-path");
+  } else {
+    store.delete("copy-path");
   }
 
-  const menu = JSON.parse(store.get("menu") as string);
-  reOpenDir(menu[0].path);
-  store.delete("copy-path");
+  BrowserWindow.getFocusedWindow()!.webContents.send("finishPaste", { isCopy });
   saveMenu();
 }
 
