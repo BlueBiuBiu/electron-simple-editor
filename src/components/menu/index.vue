@@ -68,8 +68,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
-import { useTabNavStore } from "../store/modules/tab-nav";
+import { onMounted, ref, watch, toRaw } from "vue";
+import { useTabNavStore } from "../../store/modules/tab-nav";
 
 const defaultProps = {
   children: "children",
@@ -94,7 +94,7 @@ const deletePath = ref(""); // 删除的路径
 const icons = window.FileIcons;
 // console.log(icons.getClassWithColor("README.md")); // 获取对应图标的class类名
 
-const nodeClick = (node: { name: string; path: string }) => {
+const nodeClick = async (node: { name: string; path: string }) => {
   tabNavStore.addNav(node);
 };
 

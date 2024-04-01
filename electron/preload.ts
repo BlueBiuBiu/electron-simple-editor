@@ -46,6 +46,8 @@ contextBridge.exposeInMainWorld("app", {
   isFile: (path: string) => ipcRenderer.invoke("is-file", path),
   getFileContent: (path: string) =>
     ipcRenderer.invoke("get-file-content", path),
+  saveFileContent: (path: string, content: string) =>
+    ipcRenderer.invoke("save-file-content", path, content),
 });
 
 contextBridge.exposeInMainWorld("clipboard", {

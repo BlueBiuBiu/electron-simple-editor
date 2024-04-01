@@ -3,16 +3,24 @@
     <el-tabs
       :model-value="currentTab"
       type="border-card"
-      closable
-      @tab-remove="handleDelete"
       @tab-click="tabClick"
       @click.right="rightClick"
     >
-      <el-tab-pane v-for="tab in tabData" :key="tab.path" :name="tab.path">
+      <el-tab-pane
+        v-for="(tab, index) in tabData"
+        :key="tab.path"
+        :name="tab.path"
+      >
         <template #label>
-          <span :id="tab.path">
+          <span class="content" :id="tab.path">
             <i :class="['type-icon', icons.getClassWithColor(tab.name)]"></i>
             <span>{{ tab.name }}</span>
+            <Close
+              class="icon"
+              v-if="!tab.isEdit"
+              @click.stop="closeFile(index)"
+            />
+            <EditDot class="icon" v-else />
           </span>
         </template>
       </el-tab-pane>
@@ -28,9 +36,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import { useTabNavStore } from "../store/modules/tab-nav";
+import { useTabNavStore } from "../../store/modules/tab-nav";
+import type { TabsPaneContext } from "element-plus";
 import TabCard from "../tab-card/index.vue";
 import ArrowRight from "../icons/right.vue";
+import Close from "../icons/close.vue";
+import EditDot from "../icons/dot.vue";
 
 /* ts类型定义区域 */
 interface MenuType {
@@ -61,13 +72,14 @@ const PY = ref<number>(0);
 
 /* 事件处理区域 */
 // 点击标签删除图标时
-const handleDelete = (path: string) => {
-  tabNavStore.delNav({ path });
+const closeFile = (index: number) => {
+  tabNavStore.delNav(index);
 };
 
 // 点击标签
-const tabClick = (item: string | number) => {
-  // console.log("item", item);
+const tabClick = (item: TabsPaneContext) => {
+  tabNavStore.activeTab = item.paneName as string;
+  tabNavStore.computeBreadcrumb();
 };
 
 // 鼠标右键点击
@@ -111,6 +123,9 @@ const switchMenuStatus = () => {
   status.value = false;
 };
 /* 监听 */
+window.ipcRenderer.on("saveFile", () => {
+  tabNavStore.saveFile();
+});
 
 /* 生命周期 */
 onMounted(() => {
@@ -124,12 +139,23 @@ onUnmounted(() => {
 
 <style lang="less" scoped>
 .tab-nav {
-  .type-icon {
-    font-style: normal;
-    margin-right: 6px;
+  .content {
+    display: flex;
+    align-items: center;
+    .type-icon {
+      font-style: normal;
+      margin-right: 6px;
 
-    &::before {
-      font-size: 12px;
+      &::before {
+        font-size: 14px;
+      }
+    }
+
+    .icon {
+      width: 20px;
+      height: 20px;
+      font-weight: bold;
+      margin-left: 5px;
     }
   }
 

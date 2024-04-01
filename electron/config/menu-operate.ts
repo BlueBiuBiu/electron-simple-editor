@@ -257,7 +257,9 @@ export function pasteFileOrDirectory(data: { pastePath: string }) {
 /**
  * 保存文件
  */
-export function saveFile() {}
+export function saveFile() {
+  BrowserWindow.getFocusedWindow()!.webContents.send("saveFile");
+}
 
 /**
  * 切换黑夜/亮色模式

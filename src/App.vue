@@ -11,8 +11,16 @@
       <Menu v-else :data="menu" />
     </el-aside>
     <div class="content">
-      <tabNav />
+      <tabNav v-if="tabNavStore.tabNavArr.length" />
       <el-main>
+        <div
+          :class="[
+            'no-data',
+            { 'show-no-data': !tabNavStore.tabNavArr.length },
+          ]"
+        >
+          <img :src="NoDataBG" />
+        </div>
         <div id="container"></div>
       </el-main>
     </div>
@@ -23,6 +31,8 @@
 import { onMounted, ref } from "vue";
 import Menu from "./components/menu/index.vue";
 import TabNav from "./components/tab-nav-m/index.vue";
+import { useTabNavStore } from "./store/modules/tab-nav";
+import NoDataBG from "./assets/imgs/logo.png";
 
 export interface IMenu {
   path: string;
@@ -31,6 +41,7 @@ export interface IMenu {
 }
 
 const menu = ref<IMenu[]>([]);
+const tabNavStore = useTabNavStore();
 
 const openDir = () => {
   window.ipcRenderer.send("open-directory-dialog");
@@ -43,6 +54,10 @@ window.ipcRenderer.on("selected-directory", (event: any, data: any) => {
     files: Exclude<IMenu, "children">[];
   };
   console.log("data", folderPath, files);
+  // 重置pinia除编辑器外的其他所有数据
+  tabNavStore.$reset();
+  tabNavStore.disposeEditor();
+  tabNavStore.initEditor();
 
   const tempArr = folderPath.split("\\");
   const root = {
@@ -66,6 +81,8 @@ onMounted(async () => {
   if (res) {
     menu.value = JSON.parse(res);
   }
+  // 初始化编辑器
+  tabNavStore.initEditor();
 });
 </script>
 
@@ -87,13 +104,30 @@ onMounted(async () => {
   flex-direction: column;
   flex: 1;
   overflow: hidden;
+  position: relative;
   #container {
     width: 100%;
     height: 100%;
+  }
+
+  .no-data {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+  }
+  .show-no-data {
+    z-index: 999;
+    background-color: #1e1e1e;
   }
 }
 
 :deep(.el-main) {
   padding: 0;
+  height: calc(100% - 68px);
 }
 </style>

@@ -89,3 +89,11 @@ ipcMain.handle("get-file-content", async (event: any, path: string) => {
   const fileContent = await fs.readFileSync(path, "utf8");
   return fileContent;
 });
+
+// 保存文件内容
+ipcMain.handle(
+  "save-file-content",
+  async (event: any, path: string, content: string) => {
+    return await fs.writeFileSync(path, content, "utf8");
+  }
+);
